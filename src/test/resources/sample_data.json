@@ -1,0 +1,21 @@
+[
+  {
+    "id": "p1",
+    "initiated": 1000,
+    "title": "First",
+    "initiator": {
+      "name": "John",
+      "email": "john@example.com",
+      "notify": true
+    }
+  },
+  {
+    "id": "p2",
+    "initiated": 2000,
+    "title": "Second"
+  },
+  {
+    "initiated": 3000,
+    "title": "Missing id should be skipped"
+  }
+]

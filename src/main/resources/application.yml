@@ -1,0 +1,24 @@
+info:
+  environment: ${ENVIRONMENT:local}
+  application: ${spring.application.name}
+  version: @pom.version@
+  description: @pom.description@
+  env: ${ENVIRONMENT:local}
+
+spring:
+  application:
+    name: polls
+
+  data:
+    mongodb:
+      uri: ${MONGODB_URI:mongodb://localhost:27017/doodle}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      probes:
+        enabled: true
