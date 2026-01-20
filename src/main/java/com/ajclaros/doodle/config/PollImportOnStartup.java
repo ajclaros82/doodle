@@ -18,12 +18,11 @@ import org.springframework.context.annotation.Configuration;
 public class PollImportOnStartup {
 
 	private final PollRepository pollRepository;
+
 	private final PollImportService pollImportService;
 
 	/**
 	 * Imports sample_data.json on startup only if the polls collection is empty.
-	 * <p>
-	 * This makes startup idempotent and avoids re-writing the dataset every run.
 	 */
 	@Bean
 	ApplicationRunner importPollsOnStartup() {
@@ -38,4 +37,5 @@ public class PollImportOnStartup {
 			log.info("Polls import completed: {} documents", imported);
 		};
 	}
+
 }

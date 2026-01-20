@@ -12,6 +12,7 @@ spring:
   data:
     mongodb:
       uri: ${MONGODB_URI:mongodb://localhost:27017/doodle}
+      auto-index-creation: true
 
 management:
   endpoints:

@@ -40,7 +40,7 @@ class PollImportServiceTest {
 	}
 
 	@Test
-	void importFromSampleJson_mapsInitiatorAndOptionalFields() {
+	void importFromSampleJson_mapsInitiatorAndStoresRawPayload() {
 		when(this.pollRepository.saveAll(anyList())).thenAnswer(invocation -> invocation.getArgument(0));
 
 		this.service.importFromSampleJson();
@@ -57,8 +57,13 @@ class PollImportServiceTest {
 			assertEquals("john@example.com", first.getInitiator().getEmail());
 			assertEquals(Boolean.TRUE, first.getInitiator().getNotify());
 
+			// raw payload should keep additional fields (e.g., adminKey) while excluding
+			// duplicated typed fields
+			assertNotNull(first.getRaw());
+
 			final Poll second = polls.get(1);
 			assertEquals("p2", second.getId());
+			assertNotNull(second.getRaw());
 			// initiator missing in JSON -> null
 			assertNull(second.getInitiator());
 			return true;

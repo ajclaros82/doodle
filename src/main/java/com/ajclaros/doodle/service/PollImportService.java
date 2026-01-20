@@ -5,6 +5,7 @@ import com.ajclaros.doodle.repository.PollRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
@@ -75,12 +76,14 @@ public class PollImportService {
 		return polls;
 	}
 
+	@SneakyThrows
 	private Poll parsePoll(final JsonNode pollNode, final String id) {
 		final Long initiated = readLongOrNull(pollNode, "initiated");
 		final String title = readTextOrNull(pollNode, "title");
 		final Poll.Initiator initiator = parseInitiatorOrNull(pollNode.path("initiator"));
+		final String raw = this.objectMapper.writeValueAsString(pollNode);
 
-		return Poll.builder().id(id).initiated(initiated).title(title).initiator(initiator).build();
+		return Poll.builder().id(id).initiated(initiated).title(title).initiator(initiator).raw(raw).build();
 	}
 
 	private static Poll.Initiator parseInitiatorOrNull(final JsonNode initiatorNode) {
