@@ -1,0 +1,37 @@
+services:
+  mongo:
+    image: mongo:7.0
+    container_name: doodle-mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.runCommand({ ping: 1 }).ok" ]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+      start_period: 10s
+
+  polls-service:
+    build:
+      context: .
+    container_name: doodle-polls
+    depends_on:
+      mongo:
+        condition: service_healthy
+    environment:
+      MONGODB_URI: mongodb://mongo:27017/doodle
+      ENVIRONMENT: docker
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health | grep -q '\"status\":\"UP\"'"]
+      interval: 10s
+      timeout: 3s
+      retries: 20
+      start_period: 20s
+
+volumes:
+  mongo_data:
