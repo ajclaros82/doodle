@@ -36,7 +36,7 @@ public class Poll {
 	private Initiator initiator;
 
 	/**
-	 * Raw poll JSON fields (everything else besides id/initiated/title/initiator).
+	 * Raw poll JSON (full original poll record as a JSON string).
 	 * <p>
 	 * This lets us persist and later retrieve the full document without modelling
 	 * the complete Doodle schema.
@@ -49,7 +49,5 @@ public class Poll {
 	@AllArgsConstructor
 	public static class Initiator {
 		private String name;
-		private String email;
-		private Boolean notify;
 	}
 }

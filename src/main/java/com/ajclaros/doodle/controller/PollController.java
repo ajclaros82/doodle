@@ -1,10 +1,10 @@
 package com.ajclaros.doodle.controller;
 
-import com.ajclaros.doodle.model.Poll;
+import com.ajclaros.doodle.mapper.PollRawMapper;
 import com.ajclaros.doodle.repository.PollRepository;
+import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -22,6 +22,7 @@ import java.util.List;
 public class PollController {
 
 	private final PollRepository pollRepository;
+	private final PollRawMapper pollRawMapper;
 
 	/**
 	 * 1) Get polls by initiator name (partial, case-insensitive).
@@ -29,8 +30,8 @@ public class PollController {
 	 * Example: GET /api/v1/polls/by-initiator?name=john
 	 */
 	@GetMapping("/by-initiator")
-	public List<Poll> getByInitiatorName(@RequestParam("name") String initiatorName) {
-		return this.pollRepository.findByInitiatorNameContainingIgnoreCase(initiatorName);
+	public List<JsonNode> getByInitiatorName(@RequestParam("name") String initiatorName) {
+		return this.pollRawMapper.toRawJson(this.pollRepository.findByInitiatorNameContainingIgnoreCase(initiatorName));
 	}
 
 	/**
@@ -39,8 +40,8 @@ public class PollController {
 	 * Example: GET /api/v1/polls/by-title?title=meeting
 	 */
 	@GetMapping("/by-title")
-	public List<Poll> getByByTitle(@RequestParam("title") String title) {
-		return this.pollRepository.findByTitleContainingIgnoreCase(title);
+	public List<JsonNode> getByTitle(@RequestParam("title") String title) {
+		return this.pollRawMapper.toRawJson(this.pollRepository.findByTitleContainingIgnoreCase(title));
 	}
 
 	/**
@@ -48,23 +49,11 @@ public class PollController {
 	 * <p>
 	 * The poll field `initiated` is a unix epoch timestamp in milliseconds.
 	 * <p>
-	 * Provide either: - initiatedAfterMs (epoch millis) - initiatedAfter (ISO-8601
-	 * instant, e.g. 2026-01-01T00:00:00Z)
+	 * Provide: initiatedAfter (ISO-8601 instant, e.g. 2026-01-01T00:00:00Z)
 	 */
 	@GetMapping("/initiated-after")
-	public ResponseEntity<List<Poll>> getInitiatedAfter(
-			@RequestParam(value = "initiatedAfterMs", required = false) Long initiatedAfterMs,
-			@RequestParam(value = "initiatedAfter", required = false) String initiatedAfter) {
-
-		final long threshold;
-		if (initiatedAfterMs != null) {
-			threshold = initiatedAfterMs;
-		} else if (initiatedAfter != null && !initiatedAfter.isBlank()) {
-			threshold = Instant.parse(initiatedAfter).toEpochMilli();
-		} else {
-			return ResponseEntity.badRequest().build();
-		}
-
-		return ResponseEntity.ok(this.pollRepository.findByInitiatedGreaterThanEqual(threshold + 1));
+	public List<JsonNode> getInitiatedAfter(@RequestParam(value = "initiatedAfter") String initiatedAfter) {
+		final long initiatedAfterMs = Instant.parse(initiatedAfter).toEpochMilli();
+		return this.pollRawMapper.toRawJson(this.pollRepository.findByInitiatedGreaterThan(initiatedAfterMs));
 	}
 }

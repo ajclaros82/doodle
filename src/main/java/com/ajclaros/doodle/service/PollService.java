@@ -5,7 +5,6 @@ import com.ajclaros.doodle.repository.PollRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
-import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
@@ -22,7 +21,7 @@ import static com.ajclaros.doodle.util.JsonUtils.*;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class PollImportService {
+public class PollService {
 
 	private static final String SAMPLE_DATA_PATH = "sample_data.json";
 
@@ -76,13 +75,16 @@ public class PollImportService {
 		return polls;
 	}
 
-	@SneakyThrows
 	private Poll parsePoll(final JsonNode pollNode, final String id) {
 		final Long initiated = readLongOrNull(pollNode, "initiated");
 		final String title = readTextOrNull(pollNode, "title");
 		final Poll.Initiator initiator = parseInitiatorOrNull(pollNode.path("initiator"));
-		final String raw = this.objectMapper.writeValueAsString(pollNode);
-
+		final String raw;
+		try {
+			raw = this.objectMapper.writeValueAsString(pollNode);
+		} catch (final Exception e) {
+			throw new IllegalStateException("Failed to serialize raw poll id=" + id, e);
+		}
 		return Poll.builder().id(id).initiated(initiated).title(title).initiator(initiator).raw(raw).build();
 	}
 
@@ -91,9 +93,7 @@ public class PollImportService {
 			return null;
 		}
 
-		return Poll.Initiator.builder().name(readTextOrNull(initiatorNode, "name"))
-				.email(readTextOrNull(initiatorNode, "email")).notify(readBooleanOrNull(initiatorNode, "notify"))
-				.build();
+		return Poll.Initiator.builder().name(readTextOrNull(initiatorNode, "name")).build();
 	}
 
 }

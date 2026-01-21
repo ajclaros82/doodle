@@ -10,7 +10,7 @@ import java.util.List;
  */
 public interface PollRepository extends MongoRepository<Poll, String> {
 
-	List<Poll> findByInitiatedGreaterThanEqual(Long initiated);
+	List<Poll> findByInitiatedGreaterThan(Long initiated);
 
 	List<Poll> findByTitleContainingIgnoreCase(String title);
 
