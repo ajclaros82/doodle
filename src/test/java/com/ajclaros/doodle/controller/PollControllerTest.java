@@ -1,8 +1,6 @@
 package com.ajclaros.doodle.controller;
 
-import com.ajclaros.doodle.mapper.PollRawMapper;
-import com.ajclaros.doodle.model.Poll;
-import com.ajclaros.doodle.repository.PollRepository;
+import com.ajclaros.doodle.service.PollQueryService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import org.hamcrest.Matchers;
@@ -17,9 +15,9 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
 
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -38,70 +36,48 @@ class PollControllerTest {
 	private MockMvc mockMvc;
 
 	@MockitoBean
-	private PollRepository pollRepository;
-
-	@MockitoBean
-	private PollRawMapper pollRawMapper;
+	private PollQueryService pollQueryService;
 
 	@Test
-	void byInitiator_returnsMapperOutput() throws Exception {
-		final List<Poll> polls = List.of(poll("p1", 1L, "t", "John"));
-		when(this.pollRepository.findByInitiatorNameContainingIgnoreCase(eq("john"))).thenReturn(polls);
-		when(this.pollRawMapper.toRawJson(eq(polls)))
+	void byInitiator_returnsServiceOutput() throws Exception {
+		when(this.pollQueryService.findByInitiatorName(eq("john")))
 				.thenReturn(List.of(JsonNodeFactory.instance.objectNode().put("id", "p1")));
 
 		this.mockMvc.perform(get("/api/v1/polls/by-initiator").param("name", "john")).andExpect(status().isOk())
 				.andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
 				.andExpect(jsonPath("$", Matchers.hasSize(1))).andExpect(jsonPath("$[0].id").value("p1"));
 
-		verify(this.pollRepository).findByInitiatorNameContainingIgnoreCase("john");
-		verify(this.pollRawMapper).toRawJson(polls);
+		verify(this.pollQueryService).findByInitiatorName("john");
 	}
 
 	@Test
-	void byTitle_returnsMapperOutput() throws Exception {
-		final List<Poll> polls = List.of(poll("p1", 2L, "meeting", null));
-		when(this.pollRepository.findByTitleContainingIgnoreCase(eq("meeting"))).thenReturn(polls);
-		when(this.pollRawMapper.toRawJson(eq(polls)))
+	void byTitle_returnsServiceOutput() throws Exception {
+		when(this.pollQueryService.findByTitle(eq("meeting")))
 				.thenReturn(List.of(JsonNodeFactory.instance.objectNode().put("id", "p1")));
 
 		this.mockMvc.perform(get("/api/v1/polls/by-title").param("title", "meeting")).andExpect(status().isOk())
 				.andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
 				.andExpect(jsonPath("$", Matchers.hasSize(1))).andExpect(jsonPath("$[0].id").value("p1"));
 
-		verify(this.pollRepository).findByTitleContainingIgnoreCase("meeting");
-		verify(this.pollRawMapper).toRawJson(polls);
+		verify(this.pollQueryService).findByTitle("meeting");
 	}
 
 	@Test
-	void initiatedAfter_returnsMapperOutput() throws Exception {
-		final List<Poll> polls = List.of(poll("p1", 1001L, "t", null));
-		when(this.pollRepository.findByInitiatedGreaterThan(anyLong())).thenReturn(polls);
-		when(this.pollRawMapper.toRawJson(eq(polls)))
+	void initiatedAfter_returnsServiceOutput() throws Exception {
+		when(this.pollQueryService.findInitiatedAfter(anyLong()))
 				.thenReturn(List.of(JsonNodeFactory.instance.objectNode().put("id", "p1")));
 
 		this.mockMvc.perform(get("/api/v1/polls/initiated-after").param("initiatedAfter", "1970-01-01T00:00:01Z"))
 				.andExpect(status().isOk()).andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
 				.andExpect(jsonPath("$", Matchers.hasSize(1))).andExpect(jsonPath("$[0].id").value("p1"));
 
-		verify(this.pollRepository).findByInitiatedGreaterThan(1000L);
-		verify(this.pollRawMapper).toRawJson(polls);
+		verify(this.pollQueryService).findInitiatedAfter(1000L);
 	}
 
 	@Test
 	void initiatedAfter_requiresParam() throws Exception {
 		this.mockMvc.perform(get("/api/v1/polls/initiated-after")).andExpect(status().isBadRequest());
 
-		verify(this.pollRepository, org.mockito.Mockito.never()).findByInitiatedGreaterThan(anyLong());
-		verify(this.pollRawMapper, org.mockito.Mockito.never()).toRawJson(anyList());
-	}
-
-	private static Poll poll(final String id, final Long initiated, final String title, final String initiatorName) {
-		final Poll.Initiator initiator = initiatorName == null
-				? null
-				: Poll.Initiator.builder().name(initiatorName).build();
-
-		return Poll.builder().id(id).initiated(initiated).title(title).initiator(initiator)
-				.raw("{\"id\":\"" + id + "\"}").build();
+		verify(this.pollQueryService, never()).findInitiatedAfter(anyLong());
 	}
 }

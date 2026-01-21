@@ -1,7 +1,6 @@
 package com.ajclaros.doodle.controller;
 
-import com.ajclaros.doodle.mapper.PollRawMapper;
-import com.ajclaros.doodle.repository.PollRepository;
+import com.ajclaros.doodle.service.PollQueryService;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
@@ -21,8 +20,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PollController {
 
-	private final PollRepository pollRepository;
-	private final PollRawMapper pollRawMapper;
+	private final PollQueryService pollQueryService;
 
 	/**
 	 * 1) Get polls by initiator name (partial, case-insensitive).
@@ -31,7 +29,7 @@ public class PollController {
 	 */
 	@GetMapping("/by-initiator")
 	public List<JsonNode> getByInitiatorName(@RequestParam("name") String initiatorName) {
-		return this.pollRawMapper.toRawJson(this.pollRepository.findByInitiatorNameContainingIgnoreCase(initiatorName));
+		return this.pollQueryService.findByInitiatorName(initiatorName);
 	}
 
 	/**
@@ -41,7 +39,7 @@ public class PollController {
 	 */
 	@GetMapping("/by-title")
 	public List<JsonNode> getByTitle(@RequestParam("title") String title) {
-		return this.pollRawMapper.toRawJson(this.pollRepository.findByTitleContainingIgnoreCase(title));
+		return this.pollQueryService.findByTitle(title);
 	}
 
 	/**
@@ -54,6 +52,6 @@ public class PollController {
 	@GetMapping("/initiated-after")
 	public List<JsonNode> getInitiatedAfter(@RequestParam(value = "initiatedAfter") String initiatedAfter) {
 		final long initiatedAfterMs = Instant.parse(initiatedAfter).toEpochMilli();
-		return this.pollRawMapper.toRawJson(this.pollRepository.findByInitiatedGreaterThan(initiatedAfterMs));
+		return this.pollQueryService.findInitiatedAfter(initiatedAfterMs);
 	}
 }

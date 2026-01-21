@@ -22,16 +22,10 @@ public class PollRawMapper {
 	}
 
 	public JsonNode toRawJson(final Poll poll) {
-		final String raw = poll.getRaw();
-		if (raw == null || raw.isBlank()) {
+		final Object raw = poll.getRaw();
+		if (raw == null) {
 			return this.objectMapper.nullNode();
 		}
-		try {
-			return this.objectMapper.readTree(raw);
-		} catch (final Exception e) {
-			// If the stored raw is not valid JSON for some reason, return it as a string
-			// node.
-			return this.objectMapper.getNodeFactory().textNode(raw);
-		}
+		return this.objectMapper.valueToTree(raw);
 	}
 }

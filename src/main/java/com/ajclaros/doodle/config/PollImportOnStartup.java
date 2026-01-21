@@ -1,7 +1,7 @@
 package com.ajclaros.doodle.config;
 
 import com.ajclaros.doodle.repository.PollRepository;
-import com.ajclaros.doodle.service.PollService;
+import com.ajclaros.doodle.service.PollImportService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationArguments;
@@ -17,7 +17,7 @@ import org.springframework.context.annotation.Configuration;
 @RequiredArgsConstructor
 public class PollImportOnStartup {
 	private final PollRepository pollRepository;
-	private final PollService pollService;
+	private final PollImportService pollImportService;
 
 	/**
 	 * Imports sample_data.json on startup only if the polls collection is empty.
@@ -37,7 +37,7 @@ public class PollImportOnStartup {
 			// return;
 			// }
 			this.pollRepository.deleteAll();
-			final int imported = this.pollService.importFromSampleJson();
+			final int imported = this.pollImportService.importFromSampleJson();
 			log.info("Polls import completed: {} documents", imported);
 		};
 	}

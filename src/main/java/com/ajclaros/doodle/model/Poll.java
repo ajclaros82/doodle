@@ -10,6 +10,8 @@ import org.springframework.data.mongodb.core.index.CompoundIndexes;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.util.LinkedHashMap;
+
 /**
  * Persisted representation of a poll from sample_data.json.
  * <p>
@@ -36,12 +38,12 @@ public class Poll {
 	private Initiator initiator;
 
 	/**
-	 * Raw poll JSON (full original poll record as a JSON string).
+	 * Raw poll payload stored as a nested MongoDB document.
 	 * <p>
-	 * This lets us persist and later retrieve the full document without modelling
-	 * the complete Doodle schema.
+	 * Using a Map lets Spring Data MongoDB persist the structure without custom
+	 * converters.
 	 */
-	private String raw;
+	private LinkedHashMap<String, Object> raw;
 
 	@Data
 	@Builder

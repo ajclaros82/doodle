@@ -10,9 +10,11 @@ import org.testcontainers.containers.MongoDBContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+import java.util.LinkedHashMap;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @DataMongoTest
 @Testcontainers
@@ -45,8 +47,11 @@ class PollMongoRepositoryTest {
 	}
 
 	private static Poll poll(String id, Long initiated, String title, String initiatorName) {
+		final LinkedHashMap<String, Object> raw = new LinkedHashMap<>();
+		raw.put("id", id);
+
 		return Poll.builder().id(id).initiated(initiated).title(title)
-				.initiator(Poll.Initiator.builder().name(initiatorName).build()).raw("{\"id\":\"" + id + "\"}").build();
+				.initiator(Poll.Initiator.builder().name(initiatorName).build()).raw(raw).build();
 	}
 
 	private static Poll single(List<Poll> polls) {
@@ -66,6 +71,6 @@ class PollMongoRepositoryTest {
 		assertEquals(expectedInitiatorName, poll.getInitiator().getName());
 
 		assertNotNull(poll.getRaw());
-		assertFalse(poll.getRaw().isBlank());
+		assertEquals(expectedId, poll.getRaw().get("id"));
 	}
 }
